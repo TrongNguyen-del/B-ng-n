@@ -1,177 +1,87 @@
-
+--// LOAD
 if not game:IsLoaded() then game.Loaded:Wait() end
+
+--// SERVICES
+local RunService = game:GetService("RunService")
+local Lighting = game:GetService("Lighting")
 local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
-local Lighting = game:GetService("Lighting")
-local UIS = game:GetService("UserInputService")
 local player = Players.LocalPlayer
-pcall(function()    settings().Rendering.QualityLevel = Enum.QualityLevel.Level01
-end)
-for _,v in pairs(game:GetDescendants()) do
-    if v:IsA("ParticleEmitter") or v:IsA("Trail") then
-        v.Enabled = false
-    elseif v:IsA("Explosion") then
-        v.Visible = false
-    elseif v:IsA("Fire") or v:IsA("Smoke") then
-        v.Enabled = false
-    end
-end
-Lighting.GlobalShadows = false
-Lighting.FogEnd = 9e9
-pcall(function()    game.CoreGui:FindFirstChild("VIP_UI"):Destroy()
-end)
-local gui = Instance.new("ScreenGui", game.CoreGui)
-gui.Name = "VIP_UI"
-local frame = Instance.new("Frame", gui)
-frame.Size = UDim2.new(0, 260, 0, 105)
-frame.Position = UDim2.new(1, -500, 0, -60) 
-frame.BackgroundColor3 = Color3.fromRGB(20,20,20)
-frame.BackgroundTransparency = 0.25
-Instance.new("UICorner", frame).CornerRadius = UDim.new(0,18)
-local stroke = Instance.new("UIStroke", frame)
-stroke.Thickness = 1.5
-RunService.RenderStepped:Connect(function()
-    local hue = (tick()*0.2)%1
-    stroke.Color = Color3.fromHSV(hue,1,1)
-end)
-local shadow = Instance.new("Frame", gui)
-shadow.Size = frame.Size
-shadow.Position = frame.Position + UDim2.new(0,4,0,4)
-shadow.BackgroundColor3 = Color3.new(0,0,0)
-shadow.BackgroundTransparency = 0.6
-shadow.ZIndex = 0
-Instance.new("UICorner", shadow).CornerRadius = UDim.new(0,18)
-frame.ZIndex = 1
-local user = Instance.new("TextLabel", frame)
-user.Size = UDim2.new(1,0,0,30)
-user.BackgroundTransparency = 1
-local name = player.Name
-if #name > 4 then
-    name = string.sub(name, 1, #name - 4) .. "####"
-else
-    name = "####"
-end
-user.Text = "Username: " .. name
-user.Font = Enum.Font.GothamBold
-user.TextScaled = true
-user.TextColor3 = Color3.fromRGB(255,255,255)
-local note = Instance.new("TextLabel", frame)
-note.Size = UDim2.new(1,0,0,25)
-note.Position = UDim2.new(0,0,0,28)
-note.BackgroundTransparency = 1
-note.Text = "Đơn lọ chéo"
-note.Font = Enum.Font.Gotham
-note.TextScaled = true
-note.TextColor3 = Color3.fromRGB(255,200,0)
-local info = Instance.new("TextLabel", frame)
-info.Size = UDim2.new(1,0,0,40)
-info.Position = UDim2.new(0,0,0,60)
-info.BackgroundTransparency = 1
-info.Font = Enum.Font.GothamBold
-info.TextScaled = true
-local last = tick()
-local frames = 0
-local fps = 0
-local startTime = tick()
-local cap = 10
-local frameTime = 1 / cap
-local lastRender = tick()
-RunService.RenderStepped:Connect(function()
-    local now = tick()    
-    if now - lastRender < frameTime then
-        return
-    end
-    lastRender = now
-    frames += 1    
-    if now - last >= 1 then
-        fps = frames
-        frames = 0
-        last = now
-    end    
-    local t = math.floor(now - startTime)
-    local m = math.floor(t / 60)
-    local s = t % 60    
-    info.Text = "Time: "..m.."m "..s.."s  |  FPS: "..fps    
-    local hue = (tick()*0.3)%1
-    info.TextColor3 = Color3.fromHSV(hue,0.9,1)
-end) 
 
-if not game:IsLoaded() then game.Loaded:Wait() end
-local RunService = game:GetService("RunService")
-local Lighting = game:GetService("Lighting")
-local Terrain = workspace:FindFirstChildOfClass("Terrain")
+--// =======================
+--// FPS LOCK (REAL)
+--// =======================
+pcall(function()
+    setfpscap(10) -- 🔥 khóa FPS thật
+end)
+
+--// =======================
+--// FIX LAG + GIẢM RAM
+--// =======================
+
+-- giảm chất lượng
 pcall(function()
     settings().Rendering.QualityLevel = Enum.QualityLevel.Level01
 end)
+
+-- lighting nhẹ
+Lighting.GlobalShadows = false
+Lighting.FogEnd = 1e9
 Lighting.Brightness = 2
 Lighting.ClockTime = 14
-Lighting.FogEnd = 1e9
-Lighting.GlobalShadows = false
-
-Lighting.OutdoorAmbient = Color3.fromRGB(150,150,150)
 Lighting.Ambient = Color3.fromRGB(120,120,120)
+Lighting.OutdoorAmbient = Color3.fromRGB(150,150,150)
+
+-- xóa hiệu ứng
 for _,v in pairs(Lighting:GetChildren()) do
     if v:IsA("BlurEffect") 
     or v:IsA("BloomEffect") 
     or v:IsA("SunRaysEffect") 
     or v:IsA("ColorCorrectionEffect")
     or v:IsA("DepthOfFieldEffect") then
-        v.Enabled = false
+        v:Destroy()
     end
 end
-local cc = Instance.new("ColorCorrectionEffect", Lighting)
-cc.Brightness = -0.05
-cc.Contrast = 0.1
-cc.Saturation = -0.1
-pcall(function()
-    if Terrain then
-        Terrain.WaterWaveSize = 0
-        Terrain.WaterWaveSpeed = 0
-        Terrain.WaterReflectance = 0
-        Terrain.WaterTransparency = 1
-    end
-end)
+
+-- giảm RAM map
 for _,v in pairs(game:GetDescendants()) do
+    
+    -- part nhẹ nhất
     if v:IsA("BasePart") then
         v.Material = Enum.Material.SmoothPlastic
         v.Reflectance = 0
     end
+    
+    -- xoá texture (giảm RAM cực mạnh)
     if v:IsA("Decal") or v:IsA("Texture") then
-        v.Transparency = 1
+        v:Destroy()
     end
+    
+    -- xoá hiệu ứng
     if v:IsA("ParticleEmitter") 
     or v:IsA("Trail") 
     or v:IsA("Smoke") 
     or v:IsA("Fire") then
-        v.Enabled = false
+        v:Destroy()
+    end
+    
+    -- xoá sound (giảm RAM)
+    if v:IsA("Sound") then
+        v:Stop()
+        v:Destroy()
     end
 end
+
+-- giảm FOV nhẹ hơn
 pcall(function()
     workspace.CurrentCamera.FieldOfView = 65
 end)
-pcall(function()
-    game.CoreGui:FindFirstChild("FPS_UI"):Destroy()
-end)
-local gui = Instance.new("ScreenGui", game.CoreGui)
-gui.Name = "FPS_UI"
-local fpsLabel = Instance.new("TextLabel", gui)
-fpsLabel.Size = UDim2.new(0, 50, 0, 50)
-fpsLabel.Position = UDim2.new(1, -90, 0, -50)
-fpsLabel.BackgroundTransparency = 1
-fpsLabel.Font = Enum.Font.GothamBold
-fpsLabel.TextScaled = true
-fpsLabel.Text = "FPS: ..."
-local last = tick()
-local frames = 0
-local fps = 0
-RunService.RenderStepped:Connect(function()
-    frames += 1 
-    if tick() - last >= 1 then
-        fps = frames
-        frames = 0
-        last = tick()
-    end 
-    fpsLabel.Text = "FPS: " .. fps
-    local hue = (tick()*0.3)%1
-    fpsLabel.TextColor3 = Color3.fromHSV(hue, 0.8, 1)
+
+-- dọn rác RAM liên tục
+task.spawn(function()
+    while true do
+        pcall(function()
+            collectgarbage("collect")
+        end)
+        task.wait(10)
+    end
 end)
