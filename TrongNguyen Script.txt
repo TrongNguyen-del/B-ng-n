@@ -2639,7 +2639,12 @@ local function performClick()
     getgenv().AutoClickShootSettings.LastClickTime = currentTime
 end
 
-local bearlib = loadstring(game:HttpGet("https://raw.githubusercontent.com/Naknohack/RedzUi/refs/heads/main/RedzV4ui.lua"))()
+local Window = bearlib:MakeWindow({
+    Title = "TrongNguyenHub| Blox Fruts",
+    SubTitle = "by TrongNguyenHub",
+    SaveFolder = true,
+    Image = "100306458933414"
+})
 
 -- Hiển thị thông báo UI đã tải xong
 task.spawn(function()
